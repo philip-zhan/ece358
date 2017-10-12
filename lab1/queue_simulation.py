@@ -14,11 +14,11 @@ L: int          # length of a packet in bits
 C: int          # the service time received by a packet (example: the transmission rate of the output link in bits per second)
 K: int          # the size of the buffer in number of packets
 MU: float       # utilization of the queue
-EN: float = 0.0 # average number of packets in the buffer/queue
-ET: float = 0.0 # average sojourn time
-P_IDLE: float   # the proportion of time the server is idle
-P_LOSS: float   # the packet loss probability (for M/D/1/K queue)
-M: int = 1      # the number of times you repeat your experiments
+EN = 0.0        # average number of packets in the buffer/queue
+ET = 0.0        # average sojourn time
+P_IDLE = 0.0    # the proportion of time the server is idle
+P_LOSS = 0.0    # the packet loss probability (for M/D/1/K queue)
+M = 1           # the number of times you repeat your experiments
 TICKS_PER_SEC = 1000  # the number of ticks in one second
 
 
