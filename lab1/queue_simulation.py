@@ -18,12 +18,14 @@ EN = 0.0        # average number of packets in the buffer/queue
 ET = 0.0        # average sojourn time
 P_IDLE = 0.0    # the proportion of time the server is idle
 P_LOSS = 0.0    # the packet loss probability (for M/D/1/K queue)
-M = 1           # the number of times you repeat your experiments
-TICKS_PER_SEC = 1000  # the number of ticks in one second
+M = 10           # the number of times you repeat your experiments
+# TICKS_PER_SEC = 1000000
+TICK_DURATION = 0.000001  # the duration of a tick in seconds
+SERVICE_TICKS: int  # the number of ticks it takes to serve a packet
 
 
 def main(argv):
-    global Q, TICKS, LAM, L, C, K
+    global Q, TICKS, LAM, L, C, K, SERVICE_TICKS, EN
     K = None
     if len(argv) >= 4:
         TICKS = int(argv[0])
@@ -41,21 +43,27 @@ def main(argv):
         if k != "":
             K = int(k)
 
-    for i in range(M):
-        Q = deque(maxlen=K)
-        discrete_time()
-        compute_performance()
+    SERVICE_TICKS = int(L / C / TICK_DURATION)
+
+    for i in range(1, M+1):
+        EN += (discrete_time() - EN) / i
+
+    print(EN)
 
 
 def discrete_time():
-    global EN
+    global Q
+    Q = deque(maxlen=K)
+    en = 0.0
     next_arrival = 1
-    # ticks_served = 0
+    ticks_served = 0
     for tick in range(1, TICKS+1):
         # print("tick:", tick)
         next_arrival = packet_generator(tick, next_arrival)
-        packet_server(tick)
-        EN += (len(Q) - EN) / tick
+        ticks_served = packet_server(tick, ticks_served)
+        en += (len(Q) - en) / tick
+    # compute_performance()
+    return en
 
 
 def packet_generator(tick, next_arrival):
@@ -63,18 +71,17 @@ def packet_generator(tick, next_arrival):
         new_packet = packet.Packet(tick)
         Q.appendleft(new_packet)
         next_arrival += get_random_var()
-        print("packet arrived at tick:", new_packet.generated_tick)
-        print("size of the queue:", len(Q))
+        # print("packet arrived at tick:", new_packet.generated_tick)
+        # print("size of the queue:", len(Q))
         # print("next packet arrives at:", next_arrival)
         # for item in q:
         #     print(int(packet.Packet(item).generated_tick))
     return next_arrival
 
 
-def packet_server(tick):
-    service_time = - (-L // C)  # ceiling integer division
-    # print("service time:", service_time)
-    if tick % service_time == 0 and Q:
+def packet_server(tick, ticks_served):
+    # if ticks_served == SERVICE_TICKS:
+    if tick % SERVICE_TICKS == 0 and Q:
         Q.pop()
     # if ticks_served < service_time:
     #     ticks_served += 1
@@ -85,7 +92,9 @@ def packet_server(tick):
 
 
 def get_random_var():
-    return int((-1 / LAM) * math.log(1 - random.random()))
+    random_var = int((-1 / LAM) * math.log(1 - random.random()) / TICK_DURATION)
+    # print(random_var)
+    return random_var
 
 
 def compute_performance():
