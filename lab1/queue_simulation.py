@@ -22,6 +22,7 @@ M = 10           # the number of times you repeat your experiments
 # TICKS_PER_SEC = 1000000
 TICK_DURATION = 0.000001  # the duration of a tick in seconds
 SERVICE_TICKS: int  # the number of ticks it takes to serve a packet
+IDLE = 0        # the number ticks that the server is idle
 
 
 def main(argv):
@@ -56,7 +57,7 @@ def discrete_time():
     Q = deque(maxlen=K)
     en = 0.0
     next_arrival = 1
-    ticks_served = 0
+    ticks_served = 1
     for tick in range(1, TICKS+1):
         # print("tick:", tick)
         next_arrival = packet_generator(tick, next_arrival)
@@ -80,15 +81,17 @@ def packet_generator(tick, next_arrival):
 
 
 def packet_server(tick, ticks_served):
-    # if ticks_served == SERVICE_TICKS:
-    if tick % SERVICE_TICKS == 0 and Q:
+    global IDLE
+    if ticks_served == SERVICE_TICKS and Q:  # the last tick of the current packet and Q is not empty
         Q.pop()
-    # if ticks_served < service_time:
-    #     ticks_served += 1
-    # elif q:
-    #     q.pop()
-    # if q:
-    #     ticks_served = 1
+        ticks_served = 1
+    elif Q:  # not the last tick of the current packet and Q is not empty
+        ticks_served += 1
+    elif ticks_served == SERVICE_TICKS:  # the last tick of the current packet and Q is empty
+        print("Error in Q")
+    else:  # not the last tick of the current packet and Q is empty
+        IDLE += 1
+    return ticks_served
 
 
 def get_random_var():
