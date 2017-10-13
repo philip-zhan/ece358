@@ -83,8 +83,8 @@ def packet_generator(tick, next_arrival):
         else:
             loss = 1
         next_arrival += get_random_var()
-        # print("packet arrived at tick:", new_packet.generated_tick)
-        # print("size of the queue:", len(Q))
+        print("packet arrived at tick:", new_packet.generated_tick)
+        print("size of the queue:", len(Q))
         # print("next packet arrives at:", next_arrival)
         # for item in q:
         #     print(int(packet.Packet(item).generated_tick))
@@ -108,9 +108,7 @@ def packet_server(tick, ticks_served):
 
 
 def get_random_var():
-    random_var = int((-1 / LAM) * math.log(1 - random.random()) / TICK_DURATION)
-    # print(random_var)
-    return random_var
+    return int((-1 / LAM) * math.log(1 - random.random()))
 
 
 def compute_performance(queue_size_list, sojourn_time_list, total_loss, total_idle):
