@@ -17,8 +17,8 @@ EN = 0.0            # average number of packets in the buffer/queue
 ET = 0.0            # average sojourn time
 P_IDLE = 0.0        # the proportion of time the server is idle
 P_LOSS = 0.0        # the packet loss probability (for M/D/1/K queue)
-M = 5               # the number of times you repeat your experiments
-TICK_DURATION = 0.00001  # the duration of a tick in seconds
+M = 10              # the number of times you repeat your experiments
+TICK_DURATION = 0.000001  # the duration of a tick in seconds
 
 
 def main(argv):
@@ -83,8 +83,8 @@ def packet_generator(tick, next_arrival):
         else:
             loss = 1
         next_arrival += get_random_var()
-        print("packet arrived at tick:", new_packet.generated_tick)
-        print("size of the queue:", len(Q))
+        # print("packet arrived at tick:", new_packet.generated_tick)
+        # print("size of the queue:", len(Q))
         # print("next packet arrives at:", next_arrival)
         # for item in q:
         #     print(int(packet.Packet(item).generated_tick))
@@ -94,27 +94,25 @@ def packet_generator(tick, next_arrival):
 def packet_server(tick, ticks_served):
     sojourn_time = 0
     idle = 0
-    if ticks_served == SERVICE_TICKS and Q:  # the last tick of the current packet and Q is not empty
-        served = Q.pop()
-        sojourn_time = tick - served
-        ticks_served = 1
-    elif Q:  # not the last tick of the current packet and Q is not empty
-        ticks_served += 1
-    elif ticks_served == SERVICE_TICKS:  # the last tick of the current packet and Q is empty
-        print("Error in Q")
-    else:  # not the last tick of the current packet and Q is empty
+    if Q:  # Q is not empty
+        if ticks_served < SERVICE_TICKS:  # not the last tick of the current packet
+            ticks_served += 1
+        else:  # the last tick of the current packet
+            ticks_served = 1
+            sojourn_time = tick - Q.pop()
+    else:
         idle = 1
     return ticks_served, sojourn_time, idle
 
 
 def get_random_var():
-    return int((-1 / LAM) * math.log(1 - random.random()))
+    return int((-1 / LAM) * math.log(1 - random.random()) / TICK_DURATION)
 
 
 def compute_performance(queue_size_list, sojourn_time_list, total_loss, total_idle):
     avg_queue_size = sum(queue_size_list) / len(queue_size_list)
-    avg_sojourn_time = sum(sojourn_time_list) / len(sojourn_time_list)
-    loss_rate = total_loss / TICKS
+    avg_sojourn_time = TICK_DURATION * sum(sojourn_time_list) / len(sojourn_time_list)
+    loss_rate = total_loss / len(sojourn_time_list)
     idle_rate = total_idle / TICKS
     return avg_queue_size, avg_sojourn_time, loss_rate, idle_rate
 
