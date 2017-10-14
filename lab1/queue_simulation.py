@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys
 from collections import deque
 import math
@@ -10,7 +8,7 @@ Q: deque            # a queue representing the input buffer
 TICKS: int          # tick is an integer constant that represents the duration of simulation
 LAM: float          # average number of packets generated / arrived(packets per second)
 L: int              # length of a packet in bits
-C: int              # the service time received by a packet (example: the transmission rate of the output link in bits per second)
+C: int              # the service time received by a packet
 K: int              # the size of the buffer in number of packets
 SERVICE_TICKS: int  # the number of ticks it takes to serve a packet
 EN = 0.0            # average number of packets in the buffer/queue
@@ -39,7 +37,6 @@ def main(argv):
         k = input("K (press Enter if performing the M/D/1 simulation): ")
         if k != "":
             K = int(k)
-
     SERVICE_TICKS = int(L / C / TICK_DURATION)
 
     for i in range(1, M+1):
@@ -62,7 +59,6 @@ def discrete_time():
     next_arrival = 1
     ticks_served = 1
     for tick in range(1, TICKS+1):
-        # print("tick:", tick)
         next_arrival, loss = packet_generator(tick, next_arrival)
         total_loss += loss
 
@@ -71,7 +67,6 @@ def discrete_time():
         if sojourn_time != 0:
             sojourn_time_list.append(sojourn_time)
         total_idle += idle
-        # en += (len(Q) - en) / tick
     return compute_performance(queue_size_list, sojourn_time_list, total_loss, total_idle)
 
 
@@ -83,25 +78,20 @@ def packet_generator(tick, next_arrival):
         else:
             loss = 1
         next_arrival += get_random_var()
-        # print("packet arrived at tick:", new_packet.generated_tick)
-        # print("size of the queue:", len(Q))
-        # print("next packet arrives at:", next_arrival)
-        # for item in q:
-        #     print(int(packet.Packet(item).generated_tick))
     return next_arrival, loss
 
 
 def packet_server(tick, ticks_served):
     sojourn_time = 0
     idle = 0
-    if Q:  # Q is not empty
+    if not Q:  # Q is empty
+        idle = 1
+    else:  # Q is not empty
         if ticks_served < SERVICE_TICKS:  # not the last tick of the current packet
             ticks_served += 1
         else:  # the last tick of the current packet
             ticks_served = 1
             sojourn_time = tick - Q.pop()
-    else:
-        idle = 1
     return ticks_served, sojourn_time, idle
 
 
@@ -119,4 +109,3 @@ def compute_performance(queue_size_list, sojourn_time_list, total_loss, total_id
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    # print(ticks, lam, l, c, k)
